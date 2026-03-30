@@ -130,6 +130,7 @@ const postSlugInput = document.getElementById("postSlug");
 const postCategoryInput = document.getElementById("postCategory");
 const postDescriptionInput = document.getElementById("postDescription");
 const postTagsInput = document.getElementById("postTags");
+const postPublishedAtInput = document.getElementById("postPublishedAt");
 const seoScoreElement = document.getElementById("seoScore");
 const seoWordCountElement = document.getElementById("seoWordCount");
 const seoTitleItem = document.getElementById("seoTitleItem");
@@ -339,7 +340,7 @@ function getSeoChecks() {
 
   return {
     titleLengthOk: title.length >= 40 && title.length <= 65,
-    descriptionLengthOk: description.length >= 120 && description.length <= 160,
+    descriptionLengthOk: description.length >= 120,
     slugLengthOk: slug.length >= 3 && slug.length <= 120,
     hasH2,
     imagesAltOk: imagesWithoutAlt === 0,
@@ -438,6 +439,20 @@ if (postTagsInput) {
   postTagsInput.value = Array.isArray(initialPost.tags)
     ? initialPost.tags.join(", ")
     : "";
+}
+
+if (postPublishedAtInput) {
+  let dateValue = "";
+  if (initialPost.published_at) {
+    // Convert ISO datetime to datetime-local format (YYYY-MM-DDTHH:mm)
+    const date = new Date(initialPost.published_at);
+    dateValue = date.toISOString().slice(0, 16);
+  } else {
+    // Set to current date/time if no published_at
+    const now = new Date();
+    dateValue = now.toISOString().slice(0, 16);
+  }
+  postPublishedAtInput.value = dateValue;
 }
 
 updateSeoChecklist();
@@ -677,6 +692,7 @@ async function savePost({ enforceSeoChecks }) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+  const publishedAtValue = postPublishedAtInput.value.trim();
   const rawContent = editor.getHTML();
   const content = optimizeHtmlForSeo(rawContent, title);
 
@@ -716,6 +732,7 @@ async function savePost({ enforceSeoChecks }) {
         category,
         tags,
         content,
+        publishedAt: publishedAtValue,
       }),
     });
 

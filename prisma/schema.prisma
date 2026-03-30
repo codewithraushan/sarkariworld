@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id           String   @id @default(cuid())
+  title        String
+  description  String
+  slug         String   @unique
+  category     String
+  tags         String[] @default([])
+  html_content String
+  text_content String?
+  status       String   @default("saved")
+  views        Int      @default(0)
+  published_at DateTime @default(now())
+  author_id    String?
+  author_name  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([title])
+  @@index([category])
+  @@index([status])
+  @@index([published_at])
+  @@index([author_id])
+  @@index([author_name])
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  mobile        String?
+  city          String?
+  state         String?
+  subscribed_at DateTime @default(now())
+  is_active     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([is_active])
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  user_id   String   @unique
+  name      String
+  email     String   @unique
+  mobile    String?
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([name])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  level     String   @default("info")
+  action    String
+  entity    String?
+  entity_id String?
+  actor_id  String?
+  actor     String?
+  message   String?
+  ip        String?
+  userAgent String?
+  meta      Json?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([action])
+  @@index([entity])
+  @@index([actor_id])
+}

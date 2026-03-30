@@ -18,3 +18,4 @@ public/uploads/profile/*
 docs
 
 temp/*
+/src/generated/prisma

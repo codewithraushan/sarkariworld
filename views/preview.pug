@@ -4,6 +4,9 @@ block content
   .page-container
     h1= post.title
     p Slug: #{post.slug}
+    if post.author_name
+      - const publishDate = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown'
+      p Published By: #{post.author_name} on #{publishDate}
     .controls
       a(href='/admin/posts') Back to posts
       a(href=editUrl) Edit this post

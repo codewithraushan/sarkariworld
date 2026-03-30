@@ -1,10 +1,36 @@
 import express from "express";
+import crypto from "node:crypto";
 import sanitizeHtml from "sanitize-html";
 import { getAdminController } from "../controller/admin.controller.js";
-import Post from "../model/Post.js";
-import User from "../model/User.js";
+import db, { isUniqueConstraintError } from "../db/index.js";
+import logger from "../utils/logger.js";
 
 const router = express.Router();
+
+function timingSafeEqual(a, b) {
+	const left = Buffer.from(String(a || ""));
+	const right = Buffer.from(String(b || ""));
+
+	if (left.length !== right.length) {
+		return false;
+	}
+
+	return crypto.timingSafeEqual(left, right);
+}
+
+function isAuthenticated(req) {
+	return Boolean(req.session && req.session.isAdminAuthenticated === true);
+}
+
+function requireAdminAuth(req, res, next) {
+	if (isAuthenticated(req)) {
+		return next();
+	}
+
+	const nextPath =
+		req.originalUrl && req.originalUrl.startsWith("/admin") ? req.originalUrl : "/admin";
+	return res.redirect(`/admin/login?next=${encodeURIComponent(nextPath)}`);
+}
 
 function sanitizeSlug(name) {
 	return String(name || "")
@@ -26,10 +52,6 @@ function getTextContent(html) {
 		.trim();
 }
 
-function escapeRegex(value) {
-	return String(value || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 function sanitizeText(value, maxLen = 120) {
 	return String(value || "")
 		.trim()
@@ -49,16 +71,220 @@ function isValidEmail(email) {
 
 function normalizeId(value) {
 	const id = String(value || "").trim();
-	return /^[a-f\d]{24}$/i.test(id) ? id : "";
+
+	if (!id) {
+		return "";
+	}
+
+	if (/^[a-f\d]{24}$/i.test(id)) {
+		return id;
+	}
+
+	if (/^[a-zA-Z0-9_-]{10,100}$/.test(id)) {
+		return id;
+	}
+
+	return "";
 }
+
+function getRequestIp(req) {
+	const forwarded = req.headers["x-forwarded-for"];
+
+	if (Array.isArray(forwarded) && forwarded[0]) {
+		return String(forwarded[0]).split(",")[0].trim();
+	}
+
+	if (typeof forwarded === "string" && forwarded) {
+		return forwarded.split(",")[0].trim();
+	}
+
+	return String(req.ip || req.socket?.remoteAddress || "");
+}
+
+function getActorFromRequest(req) {
+	const actorId = String(req.session?.adminId || req.session?.adminUserId || "");
+	const actor = String(req.session?.adminName || req.session?.adminUserId || "");
+
+	return {
+		actor_id: actorId,
+		actor,
+	};
+}
+
+async function writeActivityLog(req, payload = {}) {
+	const merged = {
+		...payload,
+		...getActorFromRequest(req),
+		ip: getRequestIp(req),
+		userAgent: String(req.headers["user-agent"] || ""),
+	};
+
+	const level = String(payload.level || "info").toLowerCase();
+
+	if (level === "error") {
+		logger.error(payload.message || payload.action || "Activity log", merged);
+		return;
+	}
+
+	if (level === "warn") {
+		logger.warn(payload.message || payload.action || "Activity log", merged);
+		return;
+	}
+
+	logger.info(payload.message || payload.action || "Activity log", merged);
+}
+
+router.use((req, res, next) => {
+	res.locals.isAdminAuthenticated = isAuthenticated(req);
+	res.locals.adminUserId = req.session?.adminUserId || "";
+	res.locals.adminName = req.session?.adminName || "";
+	next();
+});
+
+router.get("/login", function (req, res) {
+	if (isAuthenticated(req)) {
+		return res.redirect("/admin");
+	}
+
+	const nextPath = String(req.query.next || "/admin").trim();
+	const safeNextPath = nextPath.startsWith("/admin") ? nextPath : "/admin";
+	const status = String(req.query.status || "")
+		.trim()
+		.toLowerCase();
+	const errorMessage =
+		status === "invalid"
+			? "Invalid admin user ID or password."
+			: status === "missing"
+				? "Admin user is not found."
+				: "";
+
+	return res.render("pages/admin-login", {
+		meta: {
+			title: "Admin Login",
+			description: "Login required for admin area.",
+			robots: "noindex,nofollow,noarchive",
+		},
+		year: new Date().getFullYear(),
+		nextPath: safeNextPath,
+		errorMessage,
+	});
+});
+
+router.post("/login", async function (req, res) {
+	const userId = String(req.body?.userId || "").trim();
+	const password = String(req.body?.password || "");
+	const nextPath = String(req.body?.nextPath || "/admin").trim();
+	const safeNextPath = nextPath.startsWith("/admin") ? nextPath : "/admin";
+
+	if (!userId || !password) {
+		await writeActivityLog(req, {
+			level: "warn",
+			action: "admin_login_failed",
+			entity: "admin",
+			message: "Admin login failed due to missing credentials",
+			meta: { userId },
+		});
+		return res.redirect(`/admin/login?status=invalid&next=${encodeURIComponent(safeNextPath)}`);
+	}
+
+	const admin = await db.admins.findByUserId(userId);
+
+	if (!admin) {
+		await writeActivityLog(req, {
+			level: "warn",
+			action: "admin_login_failed",
+			entity: "admin",
+			message: "Admin login failed because admin user was not found",
+			meta: { userId },
+		});
+		return res.redirect(`/admin/login?status=missing&next=${encodeURIComponent(safeNextPath)}`);
+	}
+
+	const validUser = timingSafeEqual(userId, admin.user_id || "");
+	const validPassword = timingSafeEqual(password, admin.password || "");
+
+	if (!validUser || !validPassword) {
+		await writeActivityLog(req, {
+			level: "warn",
+			action: "admin_login_failed",
+			entity: "admin",
+			message: "Admin login failed due to invalid credentials",
+			meta: { userId },
+		});
+		return res.redirect(`/admin/login?status=invalid&next=${encodeURIComponent(safeNextPath)}`);
+	}
+
+	if (!req.session) {
+		await writeActivityLog(req, {
+			level: "warn",
+			action: "admin_login_failed",
+			entity: "admin",
+			message: "Admin login failed because session was unavailable",
+			meta: { userId },
+		});
+		return res.redirect(`/admin/login?status=invalid&next=${encodeURIComponent(safeNextPath)}`);
+	}
+
+	req.session.isAdminAuthenticated = true;
+	req.session.adminUserId = userId;
+	req.session.adminId = String(admin._id || admin.id || "");
+	req.session.adminName = String(admin.name || userId);
+
+	await writeActivityLog(req, {
+		level: "info",
+		action: "admin_login_success",
+		entity: "admin",
+		entity_id: String(admin._id || admin.id || ""),
+		message: "Admin logged in successfully",
+		meta: { userId },
+	});
+
+	return req.session.save(() => res.redirect(safeNextPath));
+});
+
+router.post("/logout", function (req, res) {
+	if (!req.session) {
+		return res.redirect("/admin/login");
+	}
+
+	void writeActivityLog(req, {
+		level: "info",
+		action: "admin_logout",
+		entity: "admin",
+		message: "Admin logged out",
+	});
+
+	req.session.destroy(() => {
+		res.clearCookie("admin.sid");
+		return res.redirect("/admin/login");
+	});
+});
+
+router.get("/logout", function (req, res) {
+	if (!req.session) {
+		return res.redirect("/admin/login");
+	}
+
+	void writeActivityLog(req, {
+		level: "info",
+		action: "admin_logout",
+		entity: "admin",
+		message: "Admin logged out",
+	});
+
+	req.session.destroy(() => {
+		res.clearCookie("admin.sid");
+		return res.redirect("/admin/login");
+	});
+});
+
+router.use(requireAdminAuth);
 
 router.get("/", getAdminController);
 
 router.get("/posts", async function (req, res, next) {
 	try {
-		const posts = await Post.find({}, { title: 1, slug: 1, category: 1, updatedAt: 1 })
-			.sort({ updatedAt: -1 })
-			.lean();
+		const posts = await db.posts.findAllForAdmin();
 
 		return res.render("pages/admin-posts", {
 			meta: {
@@ -83,34 +309,7 @@ router.get("/users", async function (req, res, next) {
 			.trim()
 			.toLowerCase();
 
-		const filters = {};
-
-		if (city) {
-			filters.city = new RegExp(`^${escapeRegex(city)}$`, "i");
-		}
-
-		if (state) {
-			filters.state = new RegExp(`^${escapeRegex(state)}$`, "i");
-		}
-
-		if (query) {
-			const safeQuery = new RegExp(escapeRegex(query), "i");
-			filters.$or = [{ name: safeQuery }, { email: safeQuery }];
-		}
-
-		const users = await User.find(filters, {
-			_id: 1,
-			name: 1,
-			email: 1,
-			mobile: 1,
-			city: 1,
-			state: 1,
-			subscribed_at: 1,
-			updatedAt: 1,
-		})
-			.sort({ subscribed_at: -1, createdAt: -1 })
-			.limit(500)
-			.lean();
+		const users = await db.users.findForAdmin({ query, city, state, limit: 500 });
 
 		const statusMessage =
 			actionStatus === "created"
@@ -179,7 +378,7 @@ router.post("/users/create", async function (req, res) {
 			return res.redirect("/admin/users?status=invalid");
 		}
 
-		await User.create({
+		await db.users.create({
 			name,
 			email,
 			mobile,
@@ -189,9 +388,17 @@ router.post("/users/create", async function (req, res) {
 			subscribed_at: new Date(),
 		});
 
+		await writeActivityLog(req, {
+			level: "info",
+			action: "admin_user_create",
+			entity: "user",
+			message: "User created from admin panel",
+			meta: { email, name },
+		});
+
 		return res.redirect("/admin/users?status=created");
 	} catch (error) {
-		if (error && error.code === 11000) {
+		if (isUniqueConstraintError(error)) {
 			return res.redirect("/admin/users?status=duplicate");
 		}
 
@@ -206,7 +413,7 @@ router.get("/users/edit/:id", async function (req, res) {
 		return res.redirect("/admin/users?status=invalid");
 	}
 
-	const user = await User.findById(userId).lean();
+	const user = await db.users.findById(userId);
 
 	if (!user) {
 		return res.redirect("/admin/users?status=invalid");
@@ -250,29 +457,34 @@ router.post("/users/update/:id", async function (req, res) {
 			return res.redirect("/admin/users?status=invalid");
 		}
 
-		const existingByEmail = await User.findOne({ email, _id: { $ne: userId } }).lean();
+		const existingByEmail = await db.users.emailExists(email, userId);
 
 		if (existingByEmail) {
 			return res.redirect("/admin/users?status=duplicate");
 		}
 
-		await User.findByIdAndUpdate(
-			userId,
-			{
-				name,
-				email,
-				mobile,
-				city,
-				state,
-				is_active: true,
-				updatedAt: new Date(),
-			},
-			{ runValidators: true }
-		);
+		await db.users.updateById(userId, {
+			name,
+			email,
+			mobile,
+			city,
+			state,
+			is_active: true,
+			updatedAt: new Date(),
+		});
+
+		await writeActivityLog(req, {
+			level: "info",
+			action: "admin_user_update",
+			entity: "user",
+			entity_id: userId,
+			message: "User updated from admin panel",
+			meta: { email, name },
+		});
 
 		return res.redirect("/admin/users?status=updated");
 	} catch (error) {
-		if (error && error.code === 11000) {
+		if (isUniqueConstraintError(error)) {
 			return res.redirect("/admin/users?status=duplicate");
 		}
 
@@ -288,7 +500,14 @@ router.post("/users/delete/:id", async function (req, res) {
 			return res.redirect("/admin/users?status=invalid");
 		}
 
-		await User.findByIdAndDelete(userId);
+		await db.users.deleteById(userId);
+		await writeActivityLog(req, {
+			level: "info",
+			action: "admin_user_delete",
+			entity: "user",
+			entity_id: userId,
+			message: "User deleted from admin panel",
+		});
 		return res.redirect("/admin/users?status=deleted");
 	} catch (error) {
 		return res.redirect("/admin/users?status=invalid");
@@ -323,7 +542,7 @@ router.get("/edit/:slug", async function (req, res, next) {
 			return res.status(400).send("Invalid slug.");
 		}
 
-		const post = await Post.findOne({ slug: safeSlug }).lean();
+		const post = await db.posts.findBySlug(safeSlug);
 
 		if (!post) {
 			return res.status(404).send("Post not found.");
@@ -359,7 +578,15 @@ router.post("/delete/:slug", async function (req, res, next) {
 			return res.status(400).send("Invalid slug.");
 		}
 
-		await Post.findOneAndDelete({ slug: safeSlug });
+		await db.posts.deleteBySlug(safeSlug);
+		await writeActivityLog(req, {
+			level: "info",
+			action: "admin_post_delete",
+			entity: "post",
+			entity_id: safeSlug,
+			message: "Post deleted from admin panel",
+			meta: { slug: safeSlug },
+		});
 		return res.redirect("/admin/posts");
 	} catch (error) {
 		return next(error);
@@ -375,6 +602,7 @@ router.post("/save", async function (req, res, next) {
 		const category = String(req.body.category || "").trim();
 		const htmlContent = typeof req.body.content === "string" ? req.body.content : "";
 		const tagsInput = Array.isArray(req.body.tags) ? req.body.tags : [];
+		const publishedAtInput = String(req.body.publishedAt || "").trim();
 		const tags = tagsInput
 			.map((tag) =>
 				String(tag || "")
@@ -390,6 +618,16 @@ router.post("/save", async function (req, res, next) {
 			});
 		}
 
+		// Parse published_at datetime if provided, otherwise use current time
+		let publishedAt = new Date();
+		if (publishedAtInput) {
+			const parsedDate = new Date(publishedAtInput);
+			// Check if date is valid
+			if (!isNaN(parsedDate.getTime())) {
+				publishedAt = parsedDate;
+			}
+		}
+
 		const payload = {
 			title,
 			description,
@@ -399,32 +637,41 @@ router.post("/save", async function (req, res, next) {
 			html_content: htmlContent,
 			text_content: getTextContent(htmlContent),
 			status: "saved",
+			published_at: publishedAt,
+			author_id: String(req.session?.adminId || req.session?.adminUserId || ""),
+			author_name: String(req.session?.adminName || req.session?.adminUserId || ""),
 		};
 
 		let savedPost;
 
 		if (postId) {
-			const existingBySlug = await Post.findOne({ slug, _id: { $ne: postId } }).lean();
+			const existingBySlug = await db.posts.slugExists(slug, postId);
 			if (existingBySlug) {
 				return res.status(409).json({ error: "Slug already in use." });
 			}
 
-			savedPost = await Post.findByIdAndUpdate(postId, payload, {
-				new: true,
-				runValidators: true,
-			});
+			savedPost = await db.posts.updateById(postId, payload);
 
 			if (!savedPost) {
 				return res.status(404).json({ error: "Post not found for editing." });
 			}
 		} else {
-			const existingBySlug = await Post.findOne({ slug }).lean();
+			const existingBySlug = await db.posts.slugExists(slug);
 			if (existingBySlug) {
 				return res.status(409).json({ error: "Slug already in use." });
 			}
 
-			savedPost = await Post.create(payload);
+			savedPost = await db.posts.create(payload);
 		}
+
+		await writeActivityLog(req, {
+			level: "info",
+			action: postId ? "admin_post_update" : "admin_post_create",
+			entity: "post",
+			entity_id: String(savedPost._id || savedPost.id || ""),
+			message: postId ? "Post updated from admin panel" : "Post created from admin panel",
+			meta: { slug: savedPost.slug, title: savedPost.title, category: savedPost.category },
+		});
 
 		return res.json({
 			message: "Post saved successfully.",
@@ -435,7 +682,7 @@ router.post("/save", async function (req, res, next) {
 			editUrl: "/admin/edit/" + savedPost.slug,
 		});
 	} catch (error) {
-		if (error && error.code === 11000) {
+		if (isUniqueConstraintError(error)) {
 			return res.status(409).json({ error: "Slug already in use." });
 		}
 
@@ -451,11 +698,7 @@ router.get("/view/:slug", async function (req, res, next) {
 			return res.status(400).send("Invalid slug.");
 		}
 
-		const post = await Post.findOneAndUpdate(
-			{ slug: safeSlug },
-			{ $inc: { views: 1 } },
-			{ new: true }
-		).lean();
+		const post = await db.posts.findBySlugAndIncrementViews(safeSlug);
 
 		if (!post) {
 			return res.status(404).send("Post not found.");

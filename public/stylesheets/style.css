@@ -33,19 +33,14 @@ h1 {
 
 .editor-app {
   width: 100%;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .controls {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  display: none;
 }
 
 .controls > * {
@@ -96,11 +91,7 @@ h1 {
 }
 
 .seo-panel {
-  border: 1px solid #d9e0ec;
-  border-radius: 10px;
-  background: #f8fbff;
-  padding: 12px;
-  margin: 10px 0 14px;
+  display: none;
 }
 
 .seo-panel h3 {
@@ -145,23 +136,26 @@ h1 {
   border: 1px solid #cfd8e6;
   border-radius: 8px;
   background: #fff;
-  min-height: 260px;
-  padding: 12px;
+  min-height: 400px;
+  padding: 16px;
   overflow-x: auto;
 }
 
 #editor .ProseMirror {
-  min-height: 230px;
+  min-height: 380px;
   outline: none;
   word-break: break-word;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 #editor .ProseMirror p.is-editor-empty:first-child::before {
-  content: "Start writing...";
+  content: "Start writing your content here...";
   color: #9aa8bd;
   float: left;
   height: 0;
   pointer-events: none;
+  font-size: 1rem;
 }
 
 #editor .ProseMirror img,

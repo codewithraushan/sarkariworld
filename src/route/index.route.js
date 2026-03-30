@@ -1,7 +1,7 @@
 import adminRouter from "./admin.route.js";
 import express from "express";
-import Post from "../model/Post.js";
-import User from "../model/User.js";
+import db from "../db/index.js";
+import logger from "../utils/logger.js";
 
 const router = express.Router();
 const ALLOWED_CATEGORIES = new Set([
@@ -14,8 +14,8 @@ const ALLOWED_CATEGORIES = new Set([
 	"important",
 ]);
 const CATEGORY_LABELS = {
-	job: "Latest Jobs",
-	result: "Results",
+	job: "Job",
+	result: "Result",
 	"admit-card": "Admit Card",
 	"answer-key": "Answer Key",
 	syllabus: "Syllabus",
@@ -86,35 +86,35 @@ router.get("/", async function (req, res, next) {
 				: subscribeStatus === "0"
 					? "Please provide a valid name and email."
 					: "";
-		const recentPosts = await Post.find({}, { title: 1, slug: 1, category: 1, updatedAt: 1 })
-			.sort({ updatedAt: -1 })
-			.limit(6)
-			.lean();
+		const recentPosts = await db.posts.findRecent(6);
 
-		const [jobPosts, resultPosts, admitCardPosts] = await Promise.all([
-			Post.find({ category: "job" }, { title: 1, slug: 1, category: 1, updatedAt: 1 })
-				.sort({ updatedAt: -1 })
-				.limit(4)
-				.lean(),
-			Post.find({ category: "result" }, { title: 1, slug: 1, category: 1, updatedAt: 1 })
-				.sort({ updatedAt: -1 })
-				.limit(4)
-				.lean(),
-			Post.find({ category: "admit-card" }, { title: 1, slug: 1, category: 1, updatedAt: 1 })
-				.sort({ updatedAt: -1 })
-				.limit(4)
-				.lean(),
+		const [
+			jobPosts,
+			resultPosts,
+			admitCardPosts,
+			answerKeyPosts,
+			syllabusPosts,
+			admissionPosts,
+			importantPosts,
+		] = await Promise.all([
+			db.posts.findRecentByCategory("job", 4),
+			db.posts.findRecentByCategory("result", 4),
+			db.posts.findRecentByCategory("admit-card", 4),
+			db.posts.findRecentByCategory("answer-key", 4),
+			db.posts.findRecentByCategory("syllabus", 4),
+			db.posts.findRecentByCategory("admission", 4),
+			db.posts.findRecentByCategory("important", 4),
 		]);
 
 		const categorySections = [
 			{
-				title: "Latest Jobs",
+				title: "Job",
 				category: "job",
 				accent: "blue",
 				items: jobPosts,
 			},
 			{
-				title: "Results",
+				title: "Result",
 				category: "result",
 				accent: "green",
 				items: resultPosts,
@@ -124,6 +124,30 @@ router.get("/", async function (req, res, next) {
 				category: "admit-card",
 				accent: "orange",
 				items: admitCardPosts,
+			},
+			{
+				title: "Answer Key",
+				category: "answer-key",
+				accent: "purple",
+				items: answerKeyPosts,
+			},
+			{
+				title: "Syllabus",
+				category: "syllabus",
+				accent: "indigo",
+				items: syllabusPosts,
+			},
+			{
+				title: "Admission",
+				category: "admission",
+				accent: "teal",
+				items: admissionPosts,
+			},
+			{
+				title: "Important",
+				category: "important",
+				accent: "red",
+				items: importantPosts,
 			},
 		];
 
@@ -171,6 +195,14 @@ router.get("/", async function (req, res, next) {
 
 router.post("/subscribe", async function (req, res) {
 	try {
+		const forwarded = req.headers["x-forwarded-for"];
+		const requestIp = Array.isArray(forwarded)
+			? String(forwarded[0] || "")
+					.split(",")[0]
+					.trim()
+			: typeof forwarded === "string"
+				? forwarded.split(",")[0].trim()
+				: String(req.ip || req.socket?.remoteAddress || "");
 		const name = sanitizeText(req.body?.name, 120);
 		const email = sanitizeText(req.body?.email, 180).toLowerCase();
 		const mobile = sanitizeMobile(req.body?.mobile);
@@ -178,27 +210,45 @@ router.post("/subscribe", async function (req, res) {
 		const state = sanitizeText(req.body?.state, 120);
 
 		if (!name || !email || !isValidEmail(email)) {
+			logger.warn("Subscription failed due to invalid name/email", {
+				action: "public_subscribe_failed",
+				entity: "user",
+				ip: requestIp,
+				userAgent: String(req.headers["user-agent"] || ""),
+				meta: { email },
+			});
 			return res.redirect("/?subscribed=0");
 		}
 
-		await User.findOneAndUpdate(
-			{ email },
-			{
-				$set: {
-					name,
-					email,
-					mobile,
-					city,
-					state,
-					is_active: true,
-					subscribed_at: new Date(),
-				},
-			},
-			{ upsert: true, new: true, setDefaultsOnInsert: true }
-		);
+		await db.users.upsertByEmail(email, {
+			name,
+			email,
+			mobile,
+			city,
+			state,
+			is_active: true,
+			subscribed_at: new Date(),
+		});
+
+		logger.info("Subscription created or updated", {
+			action: "public_subscribe_success",
+			entity: "user",
+			ip: requestIp,
+			userAgent: String(req.headers["user-agent"] || ""),
+			meta: { email, city, state },
+		});
 
 		return res.redirect("/?subscribed=1");
 	} catch (error) {
+		logger.error("Subscription failed due to server error", {
+			action: "public_subscribe_failed",
+			entity: "user",
+			ip: String(req.ip || req.socket?.remoteAddress || ""),
+			userAgent: String(req.headers["user-agent"] || ""),
+			meta: {
+				error: error?.message || String(error),
+			},
+		});
 		return res.redirect("/?subscribed=0");
 	}
 });
@@ -225,14 +275,7 @@ router.get("/:category", async function (req, res, next) {
 		}
 
 		const limit = Math.min(perPage, maxCap - skip);
-		const posts = await Post.find(
-			{ category },
-			{ title: 1, slug: 1, description: 1, updatedAt: 1, category: 1 }
-		)
-			.sort({ updatedAt: -1 })
-			.skip(skip)
-			.limit(limit + 1)
-			.lean();
+		const posts = await db.posts.findCategoryPage(category, skip, limit + 1);
 
 		const hasMore = posts.length > limit;
 		const visiblePosts = hasMore ? posts.slice(0, limit) : posts;
@@ -314,6 +357,70 @@ router.get("/contact-us", (req, res) => {
 	});
 });
 
+router.get("/sitemap.xml", async function (req, res, next) {
+	try {
+		const baseUrl = res.locals.seo?.baseUrl || "https://sarkariworld.org";
+
+		// Fetch all posts
+		const allPosts = await db.posts.findAllForSitemap();
+
+		// Build sitemap XML
+		let sitemapXml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+		sitemapXml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+
+		// Static pages
+		const staticPages = [
+			{ url: "/", changefreq: "daily", priority: "1.0" },
+			{ url: "/job", changefreq: "hourly", priority: "0.9" },
+			{ url: "/result", changefreq: "hourly", priority: "0.9" },
+			{ url: "/admit-card", changefreq: "hourly", priority: "0.9" },
+			{ url: "/answer-key", changefreq: "hourly", priority: "0.8" },
+			{ url: "/syllabus", changefreq: "hourly", priority: "0.8" },
+			{ url: "/admission", changefreq: "hourly", priority: "0.8" },
+			{ url: "/important", changefreq: "daily", priority: "0.7" },
+			{ url: "/privacy-policy", changefreq: "monthly", priority: "0.5" },
+			{ url: "/terms-and-conditions", changefreq: "monthly", priority: "0.5" },
+			{ url: "/disclaimer", changefreq: "monthly", priority: "0.5" },
+			{ url: "/about-us", changefreq: "monthly", priority: "0.6" },
+			{ url: "/contact-us", changefreq: "monthly", priority: "0.5" },
+		];
+
+		// Add static pages
+		staticPages.forEach((page) => {
+			const lastmod = new Date().toISOString().split("T")[0];
+			sitemapXml += `  <url>\n`;
+			sitemapXml += `    <loc>${baseUrl}${page.url}</loc>\n`;
+			sitemapXml += `    <lastmod>${lastmod}</lastmod>\n`;
+			sitemapXml += `    <changefreq>${page.changefreq}</changefreq>\n`;
+			sitemapXml += `    <priority>${page.priority}</priority>\n`;
+			sitemapXml += `  </url>\n`;
+		});
+
+		// Add all posts
+		allPosts.forEach((post) => {
+			const lastmod = post.updatedAt
+				? new Date(post.updatedAt).toISOString().split("T")[0]
+				: new Date(post.published_at).toISOString().split("T")[0];
+			sitemapXml += `  <url>\n`;
+			sitemapXml += `    <loc>${baseUrl}/${post.slug}</loc>\n`;
+			sitemapXml += `    <lastmod>${lastmod}</lastmod>\n`;
+			sitemapXml += `    <changefreq>weekly</changefreq>\n`;
+			sitemapXml += `    <priority>0.7</priority>\n`;
+			sitemapXml += `  </url>\n`;
+		});
+
+		sitemapXml += "</urlset>";
+
+		// Set response headers
+		res.header("Content-Type", "application/xml; charset=utf-8");
+		res.header("Cache-Control", "public, max-age=3600");
+
+		return res.send(sitemapXml);
+	} catch (error) {
+		return next(error);
+	}
+});
+
 router.get("/:slug", async function (req, res, next) {
 	try {
 		const baseUrl = res.locals.seo?.baseUrl || "";
@@ -323,11 +430,7 @@ router.get("/:slug", async function (req, res, next) {
 			return res.status(400).send("Invalid slug.");
 		}
 
-		const post = await Post.findOneAndUpdate(
-			{ slug: safeSlug },
-			{ $inc: { views: 1 } },
-			{ new: true }
-		).lean();
+		const post = await db.posts.findBySlugAndIncrementViews(safeSlug);
 
 		if (!post) {
 			return res.status(404).send("Post not found.");

@@ -1,111 +1,174 @@
 extends layouts/admin
 
 block content
-  .page-container
-    h1= title
-    p Write Sarkari World post content and save it into MongoDB.
+  .max-w-6xl.mx-auto.px-4.py-8
+    // Header
+    .mb-8
+      h1.text-4xl.font-bold.text-gray-900.mb-2 Create Post
+      p.text-gray-600 Write and publish a new article to Sarkari World
 
-    .editor-app
+    .editor-app.bg-white.rounded-2xl.shadow-lg.overflow-hidden
       input#postId(type='hidden')
 
-      .controls
-        label(for='postTitle') Title
-        input#postTitle(type='text', placeholder='Enter post title')
+      // Post Metadata Section
+      .bg-gradient-to-r.from-blue-50.to-indigo-50.p-8.border-b.border-gray-200
+        .grid.gap-6(class='md:grid-cols-2')
+          // Title
+          .space-y-2
+            label.block.font-semibold.text-gray-900(for='postTitle')
+              span.text-red-500 *
+              | Post Title
+            input#postTitle(type='text', placeholder='Enter an engaging post title', class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
 
-      .controls
-        label(for='postSlug') Slug
-        input#postSlug(type='text', placeholder='enter-post-slug')
+          // Category
+          .space-y-2
+            label.block.font-semibold.text-gray-900(for='postCategory')
+              span.text-red-500 *
+              | Category
+            select#postCategory(class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
+              option(value='job') 📋 Job
+              option(value='result') ✅ Result
+              option(value='admit-card') 🎟️ Admit Card
+              option(value='answer-key') 📝 Answer Key
+              option(value='syllabus') 📚 Syllabus
+              option(value='admission') 🎓 Admission
+              option(value='important') ⚡ Important
 
-      .controls
-        label(for='postDescription') Description
-        textarea#postDescription(rows='3', placeholder='Enter post description')
+          // Slug
+          .space-y-2(class='md:col-span-2')
+            label.block.font-semibold.text-gray-900(for='postSlug')
+              span.text-red-500 *
+              | URL Slug
+            input#postSlug(type='text', placeholder='auto-generated-slug', class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
 
-      .controls
-        label(for='postCategory') Category
-        select#postCategory
-          option(value='job') Job
-          option(value='result') Result
-          option(value='admit-card') Admit Card
-          option(value='answer-key') Answer Key
-          option(value='syllabus') Syllabus
-          option(value='admission') Admission
-          option(value='important') Important
+          // Description
+          .space-y-2(class='md:col-span-2')
+            label.block.font-semibold.text-gray-900(for='postDescription')
+              span.text-red-500 *
+              | Description
+            textarea#postDescription(rows='2', placeholder='Write a brief description (120-160 characters recommended)', class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
 
-      .controls
-        label(for='postTags') Tags (comma separated)
-        input#postTags(type='text', placeholder='e.g. ssc, upsc, result')
+          // Tags
+          .space-y-2(class='md:col-span-1')
+            label.block.font-semibold.text-gray-900(for='postTags')
+              | Tags
+            input#postTags(type='text', placeholder='ssc, upsc, govt-job', class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
 
-      .seo-panel
-        h3 SEO Assistant
-        p.seo-note Improve title/description/content quality before saving.
-        .seo-stats
-          span#seoScore SEO Score: 0/100
-          span#seoWordCount Word Count: 0
-        ul#seoChecklist.seo-checklist
-          li#seoTitleItem Title length should be 40-65 characters.
-          li#seoDescriptionItem Description should be 120-160 characters.
-          li#seoSlugItem Slug should be 3-120 characters.
-          li#seoH2Item Add at least one H2 in content.
-          li#seoImageAltItem All images should have alt text.
-          li#seoWordItem Content should have at least 300 words.
+          // Publication Date
+          .space-y-2(class='md:col-span-1')
+            label.block.font-semibold.text-gray-900(for='postPublishedAt')
+              | Creation Date & Time
+            input#postPublishedAt(type='datetime-local', class='w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent')
 
-      .controls
-        label(for='headingSelect') Heading
-        select#headingSelect
-          option(value='paragraph') Paragraph
-          option(value='1') H1
-          option(value='2') H2
-          option(value='3') H3
+      // SEO Panel
+      .bg-amber-50.border-l-4.border-amber-500.p-6
+        .flex.items-start.gap-4
+          .text-2xl 📊
+          .flex-1
+            h3.font-semibold.text-gray-900.mb-2 SEO Score
+            .grid.gap-2(class='md:grid-cols-3')
+              div
+                span#seoScore.font-semibold.text-blue-600 0/100
+              div
+                span#seoWordCount.font-semibold.text-blue-600 0
+                | words
+              div
+                p.text-sm.text-gray-600 Status
+            ul#seoChecklist.mt-3.space-y-1.text-sm.text-gray-700
+              li#seoTitleItem ☐ Title: 40-65 characters
+              li#seoDescriptionItem ☐ Description: 120-160 characters
+              li#seoSlugItem ☐ Slug: 3-120 characters
+              li#seoH2Item ☐ At least one H2 heading
+              li#seoImageAltItem ☐ All images have alt text
+              li#seoWordItem ☐ At least 300 words
 
-        button#boldBtn(type='button') Bold
-        button#italicBtn(type='button') Italic
-        button#underlineBtn(type='button') Underline
-        button#strikeBtn(type='button') Strike
-        button#highlightBtn(type='button') Highlight
+      // Editor Toolbar
+      .bg-gray-50.border-b.border-gray-200.sticky.top-0.z-50
+        // Text Formatting
+        .px-6.py-4.border-b.border-gray-200
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 TEXT FORMATTING
+          .flex.flex-wrap.gap-2
+            select#headingSelect(class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-100')
+              option(value='paragraph') Paragraph
+              option(value='1') H1
+              option(value='2') H2
+              option(value='3') H3
+            button#boldBtn(type='button', title='Bold', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 
+              strong B
+            button#italicBtn(type='button', title='Italic', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 
+              em I
+            button#underlineBtn(type='button', title='Underline', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 
+              u U
+            button#strikeBtn(type='button', title='Strikethrough', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 
+              s S
+            button#highlightBtn(type='button', title='Highlight', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 🖍️
+            .flex.items-center.gap-2
+              input#colorInput(type='color', value='#1f2937', title='Text Color')
+              button#applyColorBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Apply
+              button#clearColorBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Clear
 
-        label(for='colorInput') Color
-        input#colorInput(type='color', value='#1f2937')
-        button#applyColorBtn(type='button') Apply Color
-        button#clearColorBtn(type='button') Clear Color
+        // Lists & Blocks
+        .px-6.py-4.border-b.border-gray-200
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 LISTS & BLOCKS
+          .flex.flex-wrap.gap-2
+            button#bulletBtn(type='button', title='Bullet List', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') •
+            button#orderedBtn(type='button', title='Ordered List', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 1.
+            button#taskListBtn(type='button', title='Task List', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ☑️
+            button#quoteBtn(type='button', title='Quote', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') "
+            button#codeBlockBtn(type='button', title='Code Block', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') {'<>'}
+            button#hrBtn(type='button', title='Horizontal Line', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') —
 
-      .controls
-        button#orderedBtn(type='button') Numbered List
-        button#bulletBtn(type='button') Bullet List
-        button#taskListBtn(type='button') Task List
-        button#quoteBtn(type='button') Quote
-        button#codeBlockBtn(type='button') Code Block
-        button#hrBtn(type='button') Horizontal Line
+        // Alignment & Links
+        .px-6.py-4.border-b.border-gray-200
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 ALIGNMENT & LINKS
+          .flex.flex-wrap.gap-2
+            button#leftAlignBtn(type='button', title='Align Left', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ⬅️
+            button#centerAlignBtn(type='button', title='Align Center', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ↔️
+            button#rightAlignBtn(type='button', title='Align Right', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ➡️
+            button#linkBtn(type='button', title='Add Link', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 🔗
+            button#unlinkBtn(type='button', title='Remove Link', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ✕
 
-      .controls
-        button#leftAlignBtn(type='button') Align Left
-        button#centerAlignBtn(type='button') Align Center
-        button#rightAlignBtn(type='button') Align Right
+        // Media
+        .px-6.py-4.border-b.border-gray-200
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 MEDIA
+          .flex.flex-wrap.gap-2
+            button#imageBtn(type='button', title='Embed Image', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 🖼️
+            button#videoBtn(type='button', title='Embed YouTube', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ▶️
+            button#instagramBtn(type='button', title='Embed Instagram', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') 📷
 
-      .controls
-        button#linkBtn(type='button') Add Link
-        button#unlinkBtn(type='button') Remove Link
-        button#imageBtn(type='button') Embed Image
-        button#videoBtn(type='button') Embed YouTube Video
-        button#instagramBtn(type='button') Embed Instagram Post
+        // Tables
+        .px-6.py-4.border-b.border-gray-200
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 TABLES
+          .flex.flex-wrap.gap-2
+            button#tableAddBtn(type='button', title='Insert Table', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ⊞
+            button#tableRowAddBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Add Row
+            button#tableColAddBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Add Col
+            button#tableDeleteRowBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Del Row
+            button#tableDeleteColBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Del Col
+            button#tableDeleteBtn(type='button', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') Del Table
 
-      .controls
-        button#tableAddBtn(type='button') Insert Table
-        button#tableRowAddBtn(type='button') Add Row
-        button#tableColAddBtn(type='button') Add Column
-        button#tableDeleteRowBtn(type='button') Delete Row
-        button#tableDeleteColBtn(type='button') Delete Column
-        button#tableDeleteBtn(type='button') Delete Table
+        // History
+        .px-6.py-4
+          .mb-3
+            p.text-xs.font-semibold.text-gray-600 HISTORY
+          .flex.flex-wrap.gap-2
+            button#undoBtn(type='button', title='Undo', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ↶
+            button#redoBtn(type='button', title='Redo', class='px-3 py-1 text-sm border border-gray-300 rounded hover:bg-white bg-gray-50') ↷
 
-      .controls
-        button#undoBtn(type='button') Undo
-        button#redoBtn(type='button') Redo
+      // Editor Area
+      #editor.preview-content.min-h-96.p-6.bg-white.border-b.border-gray-200
 
-      #editor
-      p#status
-
-      .controls
-        button#saveBtn(type='button') Save Post (SEO)
-        button#saveAnyBtn(type='button') Save Post Anyway
+      // Status and Actions
+      .bg-gray-50.px-6.py-4.border-t.border-gray-200
+        p#status.text-sm.text-gray-600.mb-4
+        .flex.gap-4(class='md:justify-end')
+          button#saveBtn(type='button', class='px-6 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition') ✓ Save Post (SEO Check)
+          button#saveAnyBtn(type='button', class='px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition') → Save Anyway
 
   script.
     window.__EDITOR_INITIAL_POST = !{JSON.stringify(initialPost || {})}

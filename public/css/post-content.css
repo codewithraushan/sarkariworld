@@ -137,3 +137,44 @@
   gap: 8px;
   align-items: flex-start;
 }
+
+/* Editor styling for bullet/numbered lists */
+.ProseMirror ul,
+.ProseMirror ol {
+  margin: 0.75em 0;
+  padding-left: 1.5rem;
+  list-style-position: outside;
+}
+
+.ProseMirror ul {
+  list-style-type: disc;
+}
+
+.ProseMirror ol {
+  list-style-type: decimal;
+}
+
+.ProseMirror li {
+  margin: 0.25em 0;
+  color: #1f2937;
+  display: list-item;
+}
+
+.ProseMirror ul li::marker {
+  color: #1f2937;
+}
+
+.ProseMirror ol li::marker {
+  color: #1f2937;
+}
+
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}

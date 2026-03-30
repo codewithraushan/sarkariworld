@@ -1,0 +1,23 @@
+extends ../layouts/admin
+
+block content
+  section.max-w-md.mx-auto.px-4.py-16
+    .rounded-2xl.border.border-gray-200.bg-white.p-8.shadow-sm
+      h1.text-2xl.font-bold.text-gray-900 Admin Login
+      p.mt-2.text-gray-600 Enter admin user ID and password.
+
+      if errorMessage
+        .mt-4.rounded-lg.border.border-red-200.bg-red-50.px-4.py-3.text-sm.text-red-700= errorMessage
+
+      form.mt-6.space-y-4(method='post' action='/admin/login')
+        input(type='hidden' name='nextPath' value=nextPath)
+
+        .space-y-1
+          label.block.text-sm.font-medium.text-gray-700(for='userId') User ID
+          input#userId.w-full.rounded-lg.border.border-gray-300.px-3.py-2.text-sm.text-gray-900.outline-none(type='text' name='userId' required autocomplete='username' class='focus:border-blue-500 focus:ring-2 focus:ring-blue-200')
+
+        .space-y-1
+          label.block.text-sm.font-medium.text-gray-700(for='password') Password
+          input#password.w-full.rounded-lg.border.border-gray-300.px-3.py-2.text-sm.text-gray-900.outline-none(type='password' name='password' required autocomplete='current-password' class='focus:border-blue-500 focus:ring-2 focus:ring-blue-200')
+
+        button.inline-flex.w-full.items-center.justify-center.rounded-lg.bg-blue-600.px-6.py-3.font-semibold.text-white.transition(class='hover:bg-blue-700' type='submit') Sign In

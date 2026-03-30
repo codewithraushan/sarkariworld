@@ -5,6 +5,11 @@ block content
     .rounded-2xl.border.border-gray-200.bg-white.p-6.shadow-sm(class='md:p-8')
       h1.text-3xl.font-bold.text-gray-900= post.title
       p.mt-3.text-gray-600= post.description || 'Read full post details below.'
+      - const publishDate = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown'
+      - const authorName = post.author_name || 'Unknown'
+      - const viewCount = Number.isFinite(post.views) ? post.views : 0
+      - const viewLabel = viewCount === 1 ? 'view' : 'views'
+      p.mt-2.text-sm.text-gray-500 Published By #{authorName} on #{publishDate} | #{viewCount} #{viewLabel}
 
       .mt-4
         a.inline-flex.items-center.justify-center.rounded-lg.bg-slate-700.px-4.py-2.font-semibold.text-white.transition(class='hover:bg-slate-800' href='/') Back to Home
