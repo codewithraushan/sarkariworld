@@ -1,0 +1,10 @@
+node_modules/
+coverage/
+generated/
+logs/
+public/
+prisma/
+dist/
+build/
+*.lock
+*.log

@@ -1,0 +1,57 @@
+// Cookie Consent Banner
+#cookieConsent.fixed.bottom-0.left-0.right-0.bg-gray-900.text-white.p-4.shadow-lg.z-50.transform.translate-y-full.transition-transform.duration-300(style="display: none")
+  .max-w-7xl.mx-auto.flex.flex-col.items-center.justify-between.gap-4(class="md:flex-row")
+
+    .flex-1
+      p.text-sm(class="md:text-base")
+        strong 🍪 We use cookies
+        |  to improve your experience and display personalized content through Google AdSense. By continuing to use our website, you consent to our use of cookies.
+        a.underline(class="hover:text-teal-300" href="/privacy-policy") Learn more
+
+    .flex.gap-3
+      button#acceptCookies.bg-teal-600.text-white.px-6.py-2.rounded-lg.font-semibold.transition(class="hover:bg-teal-700")
+        | Accept
+
+      button#declineCookies.bg-gray-700.text-white.px-6.py-2.rounded-lg.font-semibold.transition(class="hover:bg-gray-600")
+        | Decline
+
+
+// Script
+script.
+  (function () {
+    const cookieConsent = document.getElementById("cookieConsent");
+    const acceptBtn = document.getElementById("acceptCookies");
+    const declineBtn = document.getElementById("declineCookies");
+
+    // Check if user has already made a choice
+    const cookieChoice = localStorage.getItem("cookieConsent");
+
+    if (!cookieChoice) {
+      // Show banner after a short delay
+      setTimeout(() => {
+        cookieConsent.style.display = "block";
+        setTimeout(() => {
+          cookieConsent.classList.remove("translate-y-full");
+        }, 100);
+      }, 1000);
+    }
+
+    // Accept cookies
+    acceptBtn.addEventListener("click", function () {
+      localStorage.setItem("cookieConsent", "accepted");
+      hideBanner();
+    });
+
+    // Decline cookies
+    declineBtn.addEventListener("click", function () {
+      localStorage.setItem("cookieConsent", "declined");
+      hideBanner();
+    });
+
+    function hideBanner() {
+      cookieConsent.classList.add("translate-y-full");
+      setTimeout(() => {
+        cookieConsent.style.display = "none";
+      }, 300);
+    }
+  })();

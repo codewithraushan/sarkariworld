@@ -1,0 +1,22 @@
+extends ../layouts/main
+
+block content
+  section.max-w-5xl.mx-auto.px-4.py-12
+    .flex.flex-wrap.items-center.justify-between.gap-3
+      h1.text-3xl.font-bold.text-gray-900= categoryLabel
+      a.inline-flex.items-center.justify-center.rounded-lg.bg-slate-700.px-4.py-2.font-semibold.text-white.transition(class='hover:bg-slate-800' href='/') Back to Home
+
+    if !posts.length
+      .mt-6.rounded-lg.border.border-dashed.border-gray-300.bg-white.p-6.text-gray-600
+        | No posts found in this category.
+    else
+      .mt-6.overflow-hidden.rounded-xl.border.border-gray-200.bg-white
+        ul.divide-y.divide-gray-200
+          each post in posts
+            li.p-4
+              a.text-lg.font-semibold.text-slate-900.transition(class='hover:text-blue-700' href='/' + post.slug)= post.title
+              p.mt-2.text-sm.text-gray-600= post.description || 'Read full details.'
+
+      if hasMore
+        .mt-6.flex.justify-center
+          a.inline-flex.items-center.justify-center.rounded-lg.bg-blue-600.px-5.font-semibold.text-white.transition(class='py-2.5 hover:bg-blue-700' href=nextPageUrl) Show More

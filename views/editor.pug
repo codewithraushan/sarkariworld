@@ -1,0 +1,113 @@
+extends layouts/admin
+
+block content
+  .page-container
+    h1= title
+    p Write Sarkari World post content and save it into MongoDB.
+
+    .editor-app
+      input#postId(type='hidden')
+
+      .controls
+        label(for='postTitle') Title
+        input#postTitle(type='text', placeholder='Enter post title')
+
+      .controls
+        label(for='postSlug') Slug
+        input#postSlug(type='text', placeholder='enter-post-slug')
+
+      .controls
+        label(for='postDescription') Description
+        textarea#postDescription(rows='3', placeholder='Enter post description')
+
+      .controls
+        label(for='postCategory') Category
+        select#postCategory
+          option(value='job') Job
+          option(value='result') Result
+          option(value='admit-card') Admit Card
+          option(value='answer-key') Answer Key
+          option(value='syllabus') Syllabus
+          option(value='admission') Admission
+          option(value='important') Important
+
+      .controls
+        label(for='postTags') Tags (comma separated)
+        input#postTags(type='text', placeholder='e.g. ssc, upsc, result')
+
+      .seo-panel
+        h3 SEO Assistant
+        p.seo-note Improve title/description/content quality before saving.
+        .seo-stats
+          span#seoScore SEO Score: 0/100
+          span#seoWordCount Word Count: 0
+        ul#seoChecklist.seo-checklist
+          li#seoTitleItem Title length should be 40-65 characters.
+          li#seoDescriptionItem Description should be 120-160 characters.
+          li#seoSlugItem Slug should be 3-120 characters.
+          li#seoH2Item Add at least one H2 in content.
+          li#seoImageAltItem All images should have alt text.
+          li#seoWordItem Content should have at least 300 words.
+
+      .controls
+        label(for='headingSelect') Heading
+        select#headingSelect
+          option(value='paragraph') Paragraph
+          option(value='1') H1
+          option(value='2') H2
+          option(value='3') H3
+
+        button#boldBtn(type='button') Bold
+        button#italicBtn(type='button') Italic
+        button#underlineBtn(type='button') Underline
+        button#strikeBtn(type='button') Strike
+        button#highlightBtn(type='button') Highlight
+
+        label(for='colorInput') Color
+        input#colorInput(type='color', value='#1f2937')
+        button#applyColorBtn(type='button') Apply Color
+        button#clearColorBtn(type='button') Clear Color
+
+      .controls
+        button#orderedBtn(type='button') Numbered List
+        button#bulletBtn(type='button') Bullet List
+        button#taskListBtn(type='button') Task List
+        button#quoteBtn(type='button') Quote
+        button#codeBlockBtn(type='button') Code Block
+        button#hrBtn(type='button') Horizontal Line
+
+      .controls
+        button#leftAlignBtn(type='button') Align Left
+        button#centerAlignBtn(type='button') Align Center
+        button#rightAlignBtn(type='button') Align Right
+
+      .controls
+        button#linkBtn(type='button') Add Link
+        button#unlinkBtn(type='button') Remove Link
+        button#imageBtn(type='button') Embed Image
+        button#videoBtn(type='button') Embed YouTube Video
+        button#instagramBtn(type='button') Embed Instagram Post
+
+      .controls
+        button#tableAddBtn(type='button') Insert Table
+        button#tableRowAddBtn(type='button') Add Row
+        button#tableColAddBtn(type='button') Add Column
+        button#tableDeleteRowBtn(type='button') Delete Row
+        button#tableDeleteColBtn(type='button') Delete Column
+        button#tableDeleteBtn(type='button') Delete Table
+
+      .controls
+        button#undoBtn(type='button') Undo
+        button#redoBtn(type='button') Redo
+
+      #editor
+      p#status
+
+      .controls
+        button#saveBtn(type='button') Save Post (SEO)
+        button#saveAnyBtn(type='button') Save Post Anyway
+
+  script.
+    window.__EDITOR_INITIAL_POST = !{JSON.stringify(initialPost || {})}
+
+  script(type='module', src='/javascripts/editor.js')

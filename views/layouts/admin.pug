@@ -1,0 +1,32 @@
+doctype html
+html(lang='en')
+  head
+    - const pageTitle = (meta && meta.title) ? meta.title : (title || 'Admin | Sarkari World')
+    - const pageDescription = (meta && meta.description) ? meta.description : 'Sarkari World admin panel'
+    - const robotsContent = (meta && meta.robots) ? meta.robots : 'noindex,nofollow,noarchive'
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1')
+    title= pageTitle
+    meta(name='description', content=pageDescription)
+    meta(name='robots', content=robotsContent)
+    link(rel='stylesheet', href='/css/app.css')
+    link(rel='stylesheet', href='/stylesheets/style.css')
+
+  body.min-h-screen.bg-slate-100.text-slate-900
+    header.bg-white.border-b.border-slate-200.shadow-sm
+      .max-w-6xl.mx-auto.px-4.py-4.flex.items-center.justify-between.gap-3
+        a.text-lg.font-semibold.text-slate-900(href='/admin') Admin Panel
+        nav.flex.items-center.gap-2
+          a.inline-flex.items-center.justify-center.rounded-md.bg-slate-800.px-3.text-sm.font-medium.text-white.transition(class='py-1.5 hover:bg-slate-900' href='/admin') Dashboard
+          a.inline-flex.items-center.justify-center.rounded-md.bg-blue-600.px-3.text-sm.font-medium.text-white.transition(class='py-1.5 hover:bg-blue-700' href='/admin/editor') Create
+          a.inline-flex.items-center.justify-center.rounded-md.bg-emerald-600.px-3.text-sm.font-medium.text-white.transition(class='py-1.5 hover:bg-emerald-700' href='/admin/posts') Posts
+          a.inline-flex.items-center.justify-center.rounded-md.bg-indigo-600.px-3.text-sm.font-medium.text-white.transition(class='py-1.5 hover:bg-indigo-700' href='/admin/users') Users
+
+    main.max-w-6xl.mx-auto.px-4.py-6
+      block content
+
+    footer.border-t.border-slate-200.bg-white
+      .max-w-6xl.mx-auto.px-4.py-4.text-sm.text-slate-500
+        | Admin area - Sarkari World
+
+    script(async src='https://www.instagram.com/embed.js')

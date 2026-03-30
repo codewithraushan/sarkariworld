@@ -1,0 +1,64 @@
+extends ../layouts/main
+
+block content
+  section.py-12.bg-gradient-to-r.from-teal-50.to-blue-50(class="md:py-16")
+    .max-w-4xl.mx-auto.px-4
+      h1.text-4xl.font-bold.text-gray-900.mb-4(class="md:text-5xl") About Sarkari World
+      p.text-lg.text-gray-700
+        | Your trusted companion for government job opportunities and educational updates.
+
+  section.py-16.bg-white(class="md:py-24")
+    .max-w-4xl.mx-auto.px-4
+      article.mb-12
+        h2.text-3xl.font-bold.text-gray-900.mb-4 Our Mission
+        p.text-gray-700.leading-relaxed.mb-4
+          | We help job seekers and students by publishing timely information about jobs,
+          | admit cards, results, answer keys, and exam updates.
+        p.text-gray-700.leading-relaxed
+          | We focus on clarity, speed, and reliability so users can quickly find what matters.
+
+      article.mb-12
+        h2.text-3xl.font-bold.text-gray-900.mb-4 What We Offer
+        .grid.gap-6(class="md:grid-cols-2")
+          .bg-teal-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-teal-700.mb-3 Latest Job Notifications
+            p.text-gray-700 Stay updated with the latest government job openings.
+          .bg-blue-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-blue-700.mb-3 Admit Cards
+            p.text-gray-700 Download admit cards with direct links and guidance.
+          .bg-purple-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-purple-700.mb-3 Results
+            p.text-gray-700 Access exam results and cutoff marks quickly.
+          .bg-green-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-green-700.mb-3 Answer Keys and Syllabus
+            p.text-gray-700 Get official answer keys and syllabus.
+          .bg-orange-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-orange-700.mb-3 Educational Resources
+            p.text-gray-700 Access model papers and admission info.
+          .bg-pink-50.p-6.rounded-lg
+            h3.text-xl.font-semibold.text-pink-700.mb-3 Daily Updates
+            p.text-gray-700 Receive daily important notifications.
+
+      article.mb-12
+        h2.text-3xl.font-bold.text-gray-900.mb-4 Why Choose Sarkari World?
+        .space-y-3
+          each item in ["Accurate information", "Timely updates", "Easy to use", "Free access", "Mobile friendly"]
+            .rounded.bg-gray-50.p-3.text-gray-800= item
+
+      article.mb-12
+        h2.text-3xl.font-bold.text-gray-900.mb-4 Get in Touch
+        .space-y-3
+          p
+            strong WhatsApp:
+            a.text-teal-600.ml-2(class="hover:underline" href="https://wa.me/919122102491") +91 9122102491
+          p
+            strong YouTube:
+            a.text-teal-600.ml-2(class="hover:underline" href="https://www.youtube.com/@sarkari_world" target="_blank" rel="noopener noreferrer") @sarkari_world
+          p
+            strong Visit:
+            a.text-teal-600.ml-2(class="hover:underline" href="/contact-us") Contact Us Page
+
+      article.bg-yellow-50.border-l-4.border-yellow-400.p-6.rounded
+        p.text-gray-700
+          strong Note:
+          |  Sarkari World is an independent portal and not affiliated with any government organization.

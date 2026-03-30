@@ -1,0 +1,64 @@
+footer.bg-black.text-gray-200
+  .text-center.py-4
+    p
+
+  .max-w-5xl.mx-auto.px-4.py-12
+    // Top Section
+    .grid.gap-10(class="md:grid-cols-3 md:divide-x md:divide-white/10")
+
+      // Brand
+      .div
+        h3.text-xl.font-bold.tracking-wide Sarkari World
+        p.mt-4.text-sm.text-gray-400.leading-relaxed
+          | Sarkari World provides the latest updates on government jobs, exam notifications,
+          | admit cards, results, answer keys, and syllabus. Stay informed with accurate and
+          | timely information for all central and state government exams in one place.
+
+      // Quick Links
+      .px-0(class="md:px-8")
+        h4.font-semibold.mb-4.text-white Quick Links
+        ul.space-y-2.text-sm
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/") Home
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/contact-us") Contact Us
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/about-us") About Us
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/privacy-policy") Privacy Policy
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/terms-and-conditions") Terms & Conditions
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/disclaimer") Disclaimer
+          li
+            a.text-gray-400.transition(class="hover:text-white" href="/sitemap.xml") Sitemap
+
+      // Social
+      .px-0(class="md:px-8")
+        h4.font-semibold.mb-4.text-white Connect With Us
+
+        .flex.flex-col.gap-4.text-sm
+          // YouTube
+          a.flex.items-center.gap-3.text-gray-400.transition(
+            class="hover:text-white"
+            href="https://www.youtube.com/@sarkari_world"
+            target="_blank"
+            rel="noopener noreferrer"
+          )
+            img.w-6.invert(src="/icons/youtube.svg", alt="YouTube Logo")
+            span
+              span.text-gray-500 /
+              span.font-medium sarkari_world
+
+          // WhatsApp
+          a.flex.items-center.gap-3.text-gray-400.transition(
+            class="hover:text-white"
+            href="https://wa.me/919060702491"
+            target="_blank"
+            rel="noopener noreferrer"
+          )
+            img.w-6.invert(src="/icons/whatsapp.svg", alt="WhatsApp Icon")
+            span.font-medium +91 9122102491
+
+    .mt-12.border-t.pt-6.text-center.text-sm.text-gray-500(class="border-white/10")
+      p © #{year} Sarkari World. All rights reserved.

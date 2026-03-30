@@ -1,0 +1,41 @@
+extends ../layouts/admin
+
+block content
+  section.max-w-2xl.mx-auto.px-4.py-8
+    .rounded-2xl.border.border-gray-200.bg-white.p-6.shadow-sm
+      if mode === 'edit'
+        h1.text-2xl.font-bold.text-slate-900 Edit User
+        p.mt-1.text-sm.text-slate-600 Update user details below.
+      else
+        h1.text-2xl.font-bold.text-slate-900 Add User
+        p.mt-1.text-sm.text-slate-600 Create a new user from admin panel.
+
+      form.mt-6.space-y-4(method='POST' action=formAction)
+        .grid.grid-cols-1.gap-4(class='md:grid-cols-2')
+          div(class='md:col-span-2')
+            label.block.text-sm.font-medium.text-slate-700(for='name') Name *
+            input#name.mt-1.w-full.rounded-lg.border.border-slate-300.px-3.py-2.text-sm(type='text' name='name' required value=user.name placeholder='Full name')
+
+          div(class='md:col-span-2')
+            label.block.text-sm.font-medium.text-slate-700(for='email') Email *
+            input#email.mt-1.w-full.rounded-lg.border.border-slate-300.px-3.py-2.text-sm(type='email' name='email' required value=user.email placeholder='Email address')
+
+          div
+            label.block.text-sm.font-medium.text-slate-700(for='mobile') Mobile
+            input#mobile.mt-1.w-full.rounded-lg.border.border-slate-300.px-3.py-2.text-sm(type='tel' name='mobile' value=user.mobile placeholder='Mobile number')
+
+          div
+            label.block.text-sm.font-medium.text-slate-700(for='city') City
+            input#city.mt-1.w-full.rounded-lg.border.border-slate-300.px-3.py-2.text-sm(type='text' name='city' value=user.city placeholder='City')
+
+          div(class='md:col-span-2')
+            label.block.text-sm.font-medium.text-slate-700(for='state') State
+            input#state.mt-1.w-full.rounded-lg.border.border-slate-300.px-3.py-2.text-sm(type='text' name='state' value=user.state placeholder='State')
+
+        .flex.flex-wrap.gap-2.pt-2
+          button.inline-flex.items-center.justify-center.rounded-lg.bg-indigo-600.px-5.py-2.text-sm.font-semibold.text-white.transition(class='hover:bg-indigo-700' type='submit')
+            if mode === 'edit'
+              | Update User
+            else
+              | Add User
+          a.inline-flex.items-center.justify-center.rounded-lg.bg-slate-200.px-5.py-2.text-sm.font-semibold.text-slate-700.transition(class='hover:bg-slate-300' href='/admin/users') Cancel

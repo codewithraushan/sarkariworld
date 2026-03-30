@@ -1,0 +1,171 @@
+extends ../layouts/main
+
+block content
+  // Recent Update Section
+  section.max-w-6xl.mx-auto.px-4.py-10
+    .border.rounded-lg.shadow-sm.overflow-hidden
+
+      // Header
+      .bg-red-600.text-white.font-bold.px-4.py-3
+        | Recent Updates Notification 🔥
+
+      // List
+      ul.divide-y.divide-gray-200.text-sm
+        if recentPosts && recentPosts.length
+          each post in recentPosts
+            li.flex.items-center.justify-between.gap-3.p-4.transition(class='hover:bg-gray-50')
+              .flex-1
+                if post.category === 'job'
+                  span.bg-blue-100.text-blue-700.text-xs.font-semibold.px-2.py-1.rounded Job
+                else if post.category === 'result'
+                  span.bg-green-100.text-green-700.text-xs.font-semibold.px-2.py-1.rounded Result
+                else if post.category === 'admit-card'
+                  span.bg-orange-100.text-orange-700.text-xs.font-semibold.px-2.py-1.rounded Admit Card
+                else
+                  span.bg-slate-100.text-slate-700.text-xs.font-semibold.px-2.py-1.rounded= post.category
+                p.mt-1= post.title
+              a.whitespace-nowrap.bg-slate-700.text-white.px-3.py-1.rounded-md.text-xs.font-semibold.transition(class='hover:bg-slate-800' href='/' + post.slug) View Details
+        else
+          li.p-4.text-gray-600 No updates available yet.
+
+
+  // Cards Section
+  section.max-w-6xl.mx-auto.px-4.py-10
+    .grid.gap-6(class="md:grid-cols-2 lg:grid-cols-3")
+      each section in categorySections
+        .border.rounded-lg.overflow-hidden.shadow-sm
+          if section.accent === 'blue'
+            .bg-blue-600.text-white.font-bold.px-4.py-2= section.title
+          else if section.accent === 'green'
+            .bg-green-600.text-white.font-bold.px-4.py-2= section.title
+          else if section.accent === 'orange'
+            .bg-orange-600.text-white.font-bold.px-4.py-2= section.title
+          else
+            .bg-slate-600.text-white.font-bold.px-4.py-2= section.title
+
+          ul.p-4.space-y-2.text-sm
+            if section.items && section.items.length
+              each item in section.items
+                li
+                  if section.accent === 'blue'
+                    a(class='hover:text-blue-600' href='/' + item.slug)= item.title
+                  else if section.accent === 'green'
+                    a(class='hover:text-green-600' href='/' + item.slug)= item.title
+                  else if section.accent === 'orange'
+                    a(class='hover:text-orange-600' href='/' + item.slug)= item.title
+                  else
+                    a(class='hover:text-slate-600' href='/' + item.slug)= item.title
+            else
+              li.text-gray-500 No posts available.
+
+            li
+              if section.accent === 'blue'
+                a.text-blue-600.font-semibold(href='/' + section.category) View More →
+              else if section.accent === 'green'
+                a.text-green-600.font-semibold(href='/' + section.category) View More →
+              else if section.accent === 'orange'
+                a.text-orange-600.font-semibold(href='/' + section.category) View More →
+              else
+                a.text-slate-600.font-semibold(href='/' + section.category) View More →
+
+
+  // Subscription Section
+  section.bg-orange-50.border-y
+    .max-w-6xl.mx-auto.px-4.py-12.text-center
+      h2.text-2xl.font-bold.text-gray-800(class="md:text-3xl") Get Instant Job Alerts 🚀
+      p.mt-3.text-gray-600.text-sm(class="md:text-base")
+        | Subscribe to receive latest government job, admit card and result updates directly in
+        | your inbox.
+
+      if subscribeMessage
+        if subscribeStatus === '1'
+          p.mt-4.text-sm.font-semibold.text-green-700= subscribeMessage
+        else if subscribeStatus === '0'
+          p.mt-4.text-sm.font-semibold.text-red-700= subscribeMessage
+
+      form.mt-6.max-w-3xl.mx-auto(action="/subscribe" method="POST")
+        .grid.grid-cols-1.gap-3(class="md:grid-cols-2")
+          input.w-full.px-4.py-3.rounded-lg.border(
+            class="focus:outline-none focus:ring-2 focus:ring-orange-500"
+            type="text"
+            name="name"
+            required
+            placeholder="Full name *"
+            autocomplete="name"
+          )
+          input.w-full.px-4.py-3.rounded-lg.border(
+            class="focus:outline-none focus:ring-2 focus:ring-orange-500"
+            type="email"
+            name="email"
+            required
+            placeholder="Email address *"
+            autocomplete="email"
+          )
+          input.w-full.px-4.py-3.rounded-lg.border(
+            class="focus:outline-none focus:ring-2 focus:ring-orange-500"
+            type="tel"
+            name="mobile"
+            placeholder="Mobile number"
+            autocomplete="tel"
+          )
+          input.w-full.px-4.py-3.rounded-lg.border(
+            class="focus:outline-none focus:ring-2 focus:ring-orange-500"
+            type="text"
+            name="city"
+            placeholder="City"
+            autocomplete="address-level2"
+          )
+          input.w-full.px-4.py-3.rounded-lg.border(
+            class="focus:outline-none focus:ring-2 focus:ring-orange-500"
+            type="text"
+            name="state"
+            placeholder="State"
+            autocomplete="address-level1"
+          )
+
+        button.mt-4.bg-orange-600.text-white.px-6.py-3.rounded-lg.font-semibold.transition(class="hover:bg-orange-700" type="submit")
+          | Subscribe
+
+      p.text-xs.text-gray-500.mt-4 No spam. You can unsubscribe anytime.
+
+
+  // FAQ Section
+  section.py-16.bg-gray-50(class="md:py-24")
+    .max-w-4xl.mx-auto.px-4
+      h2.text-3xl.font-bold.text-center.mb-12.text-gray-900(class="md:text-4xl") Frequently Asked Questions
+
+      .space-y-4
+
+        details.bg-white.rounded-lg.p-6.cursor-pointer.border.border-gray-200
+          summary.font-bold.text-lg.text-gray-900.flex.justify-between.items-center
+            | What are the best government jobs for graduates?
+            span +
+          p.mt-4.text-gray-700
+            | Popular government jobs for graduates include Banking (SBI, IBPS), SSC (CGL,
+            | CHSL), Railways (RRB), and UPSC positions. Each offers excellent career growth
+            | and benefits.
+
+        details.bg-white.rounded-lg.p-6.cursor-pointer.border.border-gray-200
+          summary.font-bold.text-lg.text-gray-900.flex.justify-between.items-center
+            | How do I prepare for government job exams?
+            span +
+          p.mt-4.text-gray-700
+            | Start by understanding the exam pattern and syllabus. Practice with previous
+            | year papers, take mock tests, and stay updated with current affairs. We provide
+            | all necessary resources on our platform.
+
+        details.bg-white.rounded-lg.p-6.cursor-pointer.border.border-gray-200
+          summary.font-bold.text-lg.text-gray-900.flex.justify-between.items-center
+            | How often are new jobs posted?
+            span +
+          p.mt-4.text-gray-700
+            | New government job notifications are posted regularly throughout the year. We
+            | update our website daily with the latest opportunities and exam notifications.
+
+        details.bg-white.rounded-lg.p-6.cursor-pointer.border.border-gray-200
+          summary.font-bold.text-lg.text-gray-900.flex.justify-between.items-center
+            | Can I get notifications for specific job categories?
+            span +
+          p.mt-4.text-gray-700
+            | Yes, you can customize your notifications based on job categories, exam names,
+            | and locations. Subscribe to our alerts to never miss an opportunity.

@@ -1,0 +1,25 @@
+extends ../layouts/admin
+
+block content
+  section.max-w-4xl.mx-auto.px-4.py-16
+    .flex.items-center.justify-between.gap-4
+      h1.text-3xl.font-bold.text-gray-900 Existing Posts
+      a.inline-flex.items-center.justify-center.rounded-lg.bg-blue-600.px-4.py-2.font-semibold.text-white.transition(class='hover:bg-blue-700' href='/admin') Back to Admin
+
+    if !posts.length
+      .mt-6.rounded-lg.border.border-dashed.border-gray-300.bg-white.p-6.text-gray-600
+        | No saved posts found.
+    else
+      .mt-6.overflow-hidden.rounded-xl.border.border-gray-200.bg-white
+        ul.divide-y.divide-gray-200
+          each post in posts
+            li.flex.flex-col.gap-4.p-4(class='md:flex-row md:items-center md:justify-between')
+              .space-y-1.min-w-0
+                p.font-semibold.text-gray-900= post.title
+                p.text-sm.text-gray-500 Slug: #{post.slug}
+                p.text-sm.text-gray-500 Category: #{post.category}
+              .flex.w-full.flex-wrap.items-center.gap-2(class='md:w-auto md:shrink-0')
+                a.inline-flex.w-full.items-center.justify-center.rounded-md.bg-emerald-600.px-3.py-2.text-sm.font-semibold.text-white.transition(class='sm:w-auto hover:bg-emerald-700' href='/admin/view/' + post.slug) View Post
+                a.inline-flex.w-full.items-center.justify-center.rounded-md.bg-amber-500.px-3.py-2.text-sm.font-semibold.text-white.transition(class='sm:w-auto hover:bg-amber-600' href='/admin/edit/' + post.slug) Edit Post
+                form.w-full(class='sm:w-auto' action='/admin/delete/' + post.slug method='post' onsubmit='return confirm("Delete this post permanently?")')
+                  button.inline-flex.w-full.items-center.justify-center.rounded-md.bg-red-600.px-3.py-2.text-sm.font-semibold.text-white.transition(class='hover:bg-red-700' type='submit') Delete Post

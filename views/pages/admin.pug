@@ -1,0 +1,14 @@
+extends ../layouts/admin
+
+block content
+  section.max-w-3xl.mx-auto.px-4.py-16
+    .rounded-2xl.border.border-gray-200.bg-white.p-8.shadow-sm
+      h1.text-3xl.font-bold.text-gray-900 Admin Dashboard
+      p.mt-3.text-gray-600 Choose an action.
+
+      .mt-8.space-y-3
+        a.inline-flex.w-full.items-center.justify-center.rounded-lg.bg-blue-600.px-6.py-3.font-semibold.text-white.transition(class='hover:bg-blue-700' href='/admin/editor') Create New Post
+        a.inline-flex.w-full.items-center.justify-center.rounded-lg.bg-emerald-600.px-6.py-3.font-semibold.text-white.transition(class='hover:bg-emerald-700' href='/admin/posts') View Post
+        a.inline-flex.w-full.items-center.justify-center.rounded-lg.bg-indigo-600.px-6.py-3.font-semibold.text-white.transition(class='hover:bg-indigo-700' href='/admin/users') View Subscribed Users
+
+  script(type='module', src='/javascripts/admin.js')

@@ -1,0 +1,12 @@
+extends layouts/admin
+
+block content
+  .page-container
+    h1= post.title
+    p Slug: #{post.slug}
+    .controls
+      a(href='/admin/posts') Back to posts
+      a(href=editUrl) Edit this post
+
+    .editor-app
+      #editor-preview.preview-content !{content}
