@@ -8,13 +8,11 @@ html(lang="en")
     - const ogTitle = (meta && meta.ogTitle) ? meta.ogTitle : pageTitle
     - const ogDescription = (meta && meta.ogDescription) ? meta.ogDescription : pageDescription
     - const ogImage = (meta && meta.ogImage) ? meta.ogImage : ((seo && seo.defaultImage) ? seo.defaultImage : '')
-    - const robotsContent = (meta && meta.robots) ? meta.robots : 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'
     meta(charset="utf-8")
     meta(name="viewport", content="width=device-width, initial-scale=1")
 
     title #{pageTitle}
     meta(name="description", content=pageDescription)
-    meta(name="robots", content=robotsContent)
     if canonicalUrl
       link(rel="canonical", href=canonicalUrl)
 

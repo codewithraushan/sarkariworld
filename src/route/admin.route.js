@@ -162,7 +162,6 @@ router.get("/login", function (req, res) {
 		meta: {
 			title: "Admin Login",
 			description: "Login required for admin area.",
-			robots: "noindex,nofollow,noarchive",
 		},
 		year: new Date().getFullYear(),
 		nextPath: safeNextPath,
@@ -290,7 +289,6 @@ router.get("/posts", async function (req, res, next) {
 			meta: {
 				title: "Existing Posts",
 				description: "View saved posts from admin dashboard.",
-				robots: "noindex,nofollow,noarchive",
 			},
 			year: new Date().getFullYear(),
 			posts,
@@ -328,7 +326,6 @@ router.get("/users", async function (req, res, next) {
 			meta: {
 				title: "Subscribed Users",
 				description: "View and filter subscribed users.",
-				robots: "noindex,nofollow,noarchive",
 			},
 			year: new Date().getFullYear(),
 			users,
@@ -350,7 +347,6 @@ router.get("/users/new", function (req, res) {
 		meta: {
 			title: "Add User",
 			description: "Add a user from admin panel.",
-			robots: "noindex,nofollow,noarchive",
 		},
 		year: new Date().getFullYear(),
 		mode: "create",
@@ -423,7 +419,6 @@ router.get("/users/edit/:id", async function (req, res) {
 		meta: {
 			title: "Edit User",
 			description: "Modify user from admin panel.",
-			robots: "noindex,nofollow,noarchive",
 		},
 		year: new Date().getFullYear(),
 		mode: "edit",
@@ -520,7 +515,6 @@ router.get("/editor", function (req, res, next) {
 		meta: {
 			title: "Create Post | Admin",
 			description: "Create post in admin panel.",
-			robots: "noindex,nofollow,noarchive",
 		},
 		initialPost: {
 			id: "",
@@ -553,7 +547,6 @@ router.get("/edit/:slug", async function (req, res, next) {
 			meta: {
 				title: `Edit ${post.title} | Admin`,
 				description: "Edit post in admin panel.",
-				robots: "noindex,nofollow,noarchive",
 			},
 			initialPost: {
 				id: String(post._id),
@@ -711,7 +704,6 @@ router.get("/view/:slug", async function (req, res, next) {
 			meta: {
 				title: post.title + " preview | Admin",
 				description: post.description || "Admin preview",
-				robots: "noindex,nofollow,noarchive",
 			},
 			post,
 			content: safeContent,

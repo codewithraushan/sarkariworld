@@ -3,7 +3,6 @@ export const getAdminController = (req, res, next) => {
 		meta: {
 			title: "Admin Dashboard",
 			description: "Admin actions for creating and viewing posts.",
-			robots: "noindex,nofollow,noarchive",
 		},
 		year: new Date().getFullYear(),
 	});

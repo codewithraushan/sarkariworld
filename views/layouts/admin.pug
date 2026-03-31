@@ -3,12 +3,10 @@ html(lang='en')
   head
     - const pageTitle = (meta && meta.title) ? meta.title : (title || 'Admin | Sarkari World')
     - const pageDescription = (meta && meta.description) ? meta.description : 'Sarkari World admin panel'
-    - const robotsContent = (meta && meta.robots) ? meta.robots : 'noindex,nofollow,noarchive'
     meta(charset='utf-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
     title= pageTitle
     meta(name='description', content=pageDescription)
-    meta(name='robots', content=robotsContent)
     link(rel='stylesheet', href='/css/app.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
 
