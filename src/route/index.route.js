@@ -11,7 +11,6 @@ const ALLOWED_CATEGORIES = new Set([
 	"answer-key",
 	"syllabus",
 	"admission",
-	"important",
 ]);
 const CATEGORY_LABELS = {
 	job: "Job",
@@ -20,7 +19,6 @@ const CATEGORY_LABELS = {
 	"answer-key": "Answer Key",
 	syllabus: "Syllabus",
 	admission: "Admission",
-	important: "Important",
 };
 
 function renderPage(res, view, meta) {
