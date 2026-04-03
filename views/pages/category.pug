@@ -13,9 +13,11 @@ block content
       .mt-6.overflow-hidden.rounded-xl.border.border-gray-200.bg-white
         ul.divide-y.divide-gray-200
           each post in posts
-            li.p-4
-              a.text-lg.font-semibold.text-slate-900.transition(class='hover:text-blue-700' href='/' + post.slug)= post.title
-              p.mt-2.text-sm.text-gray-600= post.description || 'Read full details.'
+            li.flex.flex-col.gap-3.p-4(class='sm:flex-row sm:items-center sm:justify-between')
+              .min-w-0.flex-1
+                a.text-lg.font-semibold.text-slate-900.transition(class='hover:text-blue-700' href='/' + post.slug)= post.title
+                p.mt-2.text-sm.text-gray-600= post.description || 'Read full details.'
+              a.inline-flex.items-center.justify-center.rounded-lg.bg-blue-600.px-4.py-2.text-sm.font-semibold.text-white.shadow-sm.transition(class='hover:bg-blue-700 hover:shadow-md' href='/' + post.slug) View Details
 
       if hasMore
         .mt-6.flex.justify-center

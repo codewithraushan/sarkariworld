@@ -1,7 +1,7 @@
-import adminRouter from "./admin.route.js";
 import express from "express";
 import db from "../db/index.js";
 import logger from "../utils/logger.js";
+import adminRouter from "./admin.route.js";
 
 const router = express.Router();
 const ALLOWED_CATEGORIES = new Set([
@@ -20,13 +20,6 @@ const CATEGORY_LABELS = {
 	syllabus: "Syllabus",
 	admission: "Admission",
 };
-
-function renderPage(res, view, meta) {
-	return res.render(view, {
-		meta,
-		year: new Date().getFullYear(),
-	});
-}
 
 function sanitizeSlug(name) {
 	return String(name || "")
@@ -93,7 +86,6 @@ router.get("/", async function (req, res, next) {
 			answerKeyPosts,
 			syllabusPosts,
 			admissionPosts,
-			importantPosts,
 		] = await Promise.all([
 			db.posts.findRecentByCategory("job", 4),
 			db.posts.findRecentByCategory("result", 4),
@@ -101,7 +93,6 @@ router.get("/", async function (req, res, next) {
 			db.posts.findRecentByCategory("answer-key", 4),
 			db.posts.findRecentByCategory("syllabus", 4),
 			db.posts.findRecentByCategory("admission", 4),
-			db.posts.findRecentByCategory("important", 4),
 		]);
 
 		const categorySections = [
@@ -140,12 +131,6 @@ router.get("/", async function (req, res, next) {
 				category: "admission",
 				accent: "teal",
 				items: admissionPosts,
-			},
-			{
-				title: "Important",
-				category: "important",
-				accent: "red",
-				items: importantPosts,
 			},
 		];
 
@@ -321,37 +306,52 @@ router.get("/post/:slug", async function (req, res, next) {
 });
 
 router.get("/privacy-policy", (req, res) => {
-	return renderPage(res, "pages/privacy-policy", {
-		title: "Privacy Policy | Sarkari World",
-		description: "Read how Sarkari World collects, uses, and protects user data.",
+	return res.render("pages/privacy-policy", {
+		meta: {
+			title: "Privacy Policy | Sarkari World",
+			description: "Read how Sarkari World collects, uses, and protects user data.",
+		},
+		year: new Date().getFullYear(),
 	});
 });
 
 router.get("/terms-and-conditions", (req, res) => {
-	return renderPage(res, "pages/terms-and-conditions", {
-		title: "Terms and Conditions | Sarkari World",
-		description: "Read the terms and conditions for using Sarkari World.",
+	return res.render("pages/terms-and-conditions", {
+		meta: {
+			title: "Terms and Conditions | Sarkari World",
+			description: "Read the terms and conditions for using Sarkari World.",
+		},
+		year: new Date().getFullYear(),
 	});
 });
 
 router.get("/disclaimer", (req, res) => {
-	return renderPage(res, "pages/disclaimer", {
-		title: "Disclaimer | Sarkari World",
-		description: "Understand the limitations and usage disclaimer of Sarkari World.",
+	return res.render("pages/disclaimer", {
+		meta: {
+			title: "Disclaimer | Sarkari World",
+			description: "Understand the limitations and usage disclaimer of Sarkari World.",
+		},
+		year: new Date().getFullYear(),
 	});
 });
 
 router.get("/about-us", (req, res) => {
-	return renderPage(res, "pages/about-us", {
-		title: "About Us | Sarkari World",
-		description: "Learn about Sarkari World's mission, coverage, and values.",
+	return res.render("pages/about-us", {
+		meta: {
+			title: "About Us | Sarkari World",
+			description: "Learn about Sarkari World's mission, coverage, and values.",
+		},
+		year: new Date().getFullYear(),
 	});
 });
 
 router.get("/contact-us", (req, res) => {
-	return renderPage(res, "pages/contact-us", {
-		title: "Contact Us | Sarkari World",
-		description: "Contact Sarkari World for support and feedback.",
+	return res.render("pages/contact-us", {
+		meta: {
+			title: "Contact Us | Sarkari World",
+			description: "Contact Sarkari World for support and feedback.",
+		},
+		year: new Date().getFullYear(),
 	});
 });
 
@@ -375,7 +375,6 @@ router.get("/sitemap.xml", async function (req, res, next) {
 			{ url: "/answer-key", changefreq: "hourly", priority: "0.8" },
 			{ url: "/syllabus", changefreq: "hourly", priority: "0.8" },
 			{ url: "/admission", changefreq: "hourly", priority: "0.8" },
-			{ url: "/important", changefreq: "daily", priority: "0.7" },
 			{ url: "/privacy-policy", changefreq: "monthly", priority: "0.5" },
 			{ url: "/terms-and-conditions", changefreq: "monthly", priority: "0.5" },
 			{ url: "/disclaimer", changefreq: "monthly", priority: "0.5" },
@@ -441,7 +440,6 @@ router.get("/:slug", async function (req, res, next) {
 			description: post.description || "Read full details on Sarkari World.",
 			canonical: postUrl,
 			ogType: "article",
-			extraStylesheet: "/css/post-content.css",
 			articlePublishedTime: post.published_at || post.createdAt,
 			articleModifiedTime: post.updatedAt,
 		};

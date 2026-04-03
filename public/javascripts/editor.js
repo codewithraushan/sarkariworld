@@ -146,6 +146,8 @@ const highlightBtn = document.getElementById("highlightBtn");
 const colorInput = document.getElementById("colorInput");
 const applyColorBtn = document.getElementById("applyColorBtn");
 const clearColorBtn = document.getElementById("clearColorBtn");
+const copyFormatBtn = document.getElementById("copyFormatBtn");
+const applyFormatBtn = document.getElementById("applyFormatBtn");
 const orderedBtn = document.getElementById("orderedBtn");
 const taskListBtn = document.getElementById("taskListBtn");
 const quoteBtn = document.getElementById("quoteBtn");
@@ -189,6 +191,110 @@ function toSlug(value) {
 }
 
 let slugManuallyChanged = false;
+let copiedFormat = null;
+
+function getSelectionFormat() {
+  const marks = editor.state.storedMarks || editor.state.selection.$from.marks();
+  const textStyleAttrs = editor.getAttributes("textStyle") || {};
+  const paragraphAttrs = editor.getAttributes("paragraph") || {};
+  const headingAttrs = editor.getAttributes("heading") || {};
+
+  return {
+    blockType: editor.isActive("heading") ? "heading" : "paragraph",
+    headingLevel: editor.isActive("heading") ? Number(headingAttrs.level || 1) : null,
+    textAlign: headingAttrs.textAlign || paragraphAttrs.textAlign || null,
+    bold: marks.some((mark) => mark.type.name === "bold"),
+    italic: marks.some((mark) => mark.type.name === "italic"),
+    underline: marks.some((mark) => mark.type.name === "underline"),
+    strike: marks.some((mark) => mark.type.name === "strike"),
+    highlight: marks.some((mark) => mark.type.name === "highlight"),
+    color: textStyleAttrs.color || null,
+    fontSize: textStyleAttrs.fontSize || null,
+  };
+}
+
+function updateFormatButtonsState() {
+  if (!copyFormatBtn || !applyFormatBtn) {
+    return;
+  }
+
+  const hasFormat = Boolean(copiedFormat);
+  applyFormatBtn.disabled = !hasFormat;
+  applyFormatBtn.classList.toggle("opacity-50", !hasFormat);
+  applyFormatBtn.classList.toggle("cursor-not-allowed", !hasFormat);
+  copyFormatBtn.textContent = hasFormat ? "Format Copied" : "Copy Format";
+}
+
+function applyCopiedFormat() {
+  if (!copiedFormat) {
+    setStatus("Copy a format first.", true);
+    return;
+  }
+
+  const { from, to, empty } = editor.state.selection;
+  if (empty || from === to) {
+    setStatus("Select target text to apply copied format.", true);
+    return;
+  }
+
+  const chain = editor.chain().focus();
+
+  if (copiedFormat.blockType === "heading") {
+    chain.setHeading({ level: copiedFormat.headingLevel || 1 });
+  } else {
+    chain.setParagraph();
+  }
+
+  if (copiedFormat.textAlign) {
+    chain.setTextAlign(copiedFormat.textAlign);
+  }
+
+  if (copiedFormat.bold) {
+    chain.setMark("bold");
+  } else {
+    chain.unsetMark("bold");
+  }
+
+  if (copiedFormat.italic) {
+    chain.setMark("italic");
+  } else {
+    chain.unsetMark("italic");
+  }
+
+  if (copiedFormat.underline) {
+    chain.setUnderline();
+  } else {
+    chain.unsetUnderline();
+  }
+
+  if (copiedFormat.strike) {
+    chain.setMark("strike");
+  } else {
+    chain.unsetMark("strike");
+  }
+
+  if (copiedFormat.highlight) {
+    chain.setHighlight();
+  } else {
+    chain.unsetHighlight();
+  }
+
+  if (copiedFormat.color || copiedFormat.fontSize) {
+    const textStyleAttrs = {};
+    if (copiedFormat.color) {
+      textStyleAttrs.color = copiedFormat.color;
+    }
+    if (copiedFormat.fontSize) {
+      textStyleAttrs.fontSize = copiedFormat.fontSize;
+    }
+    chain.setMark("textStyle", textStyleAttrs);
+  } else {
+    chain.unsetMark("textStyle");
+  }
+
+  chain.run();
+  setStatus("Copied format applied.");
+}
 
 function processInstagramEmbeds() {
   if (window.instgrm && window.instgrm.Embeds && typeof window.instgrm.Embeds.process === "function") {
@@ -219,14 +325,16 @@ const editor = new Editor({
       controls: true,
       nocookie: true,
     }),
-    Table.configure({ resizable: true }),
+    Table.configure({
+      resizable: true,
+    }),
     TableRow,
     TableHeader,
     TableCell,
     TaskList,
     TaskItem.configure({ nested: true }),
   ],
-  content: initialPost.html_content || "<p>Start writing here...</p>",
+  content: initialPost.html_content || "",
 });
 
 function setStatus(message, isError = false) {
@@ -414,6 +522,7 @@ editor.on("transaction", scheduleSeoChecklistUpdate);
 syncHeadingSelect();
 setTimeout(processInstagramEmbeds, 150);
 setTimeout(processInstagramEmbeds, 900);
+updateFormatButtonsState();
 
 if (postIdInput) {
   postIdInput.value = initialPost.id || "";
@@ -519,6 +628,20 @@ applyColorBtn.addEventListener("click", () => {
 clearColorBtn.addEventListener("click", () => {
   editor.chain().focus().unsetColor().run();
 });
+
+if (copyFormatBtn) {
+  copyFormatBtn.addEventListener("click", () => {
+    copiedFormat = getSelectionFormat();
+    updateFormatButtonsState();
+    setStatus("Format copied. Select another text and click Apply Format.");
+  });
+}
+
+if (applyFormatBtn) {
+  applyFormatBtn.addEventListener("click", () => {
+    applyCopiedFormat();
+  });
+}
 
 orderedBtn.addEventListener("click", () => {
   editor.chain().focus().toggleOrderedList().run();
@@ -652,26 +775,32 @@ tableAddBtn.addEventListener("click", () => {
     .focus()
     .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
     .run();
+  setStatus("Table inserted.");
 });
 
 tableRowAddBtn.addEventListener("click", () => {
   editor.chain().focus().addRowAfter().run();
+  setStatus("Row added.");
 });
 
 tableColAddBtn.addEventListener("click", () => {
   editor.chain().focus().addColumnAfter().run();
+  setStatus("Column added.");
 });
 
 tableDeleteRowBtn.addEventListener("click", () => {
   editor.chain().focus().deleteRow().run();
+  setStatus("Row deleted.");
 });
 
 tableDeleteColBtn.addEventListener("click", () => {
   editor.chain().focus().deleteColumn().run();
+  setStatus("Column deleted.");
 });
 
 tableDeleteBtn.addEventListener("click", () => {
   editor.chain().focus().deleteTable().run();
+  setStatus("Table deleted.");
 });
 
 undoBtn.addEventListener("click", () => {

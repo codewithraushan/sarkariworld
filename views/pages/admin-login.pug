@@ -20,4 +20,75 @@ block content
           label.block.text-sm.font-medium.text-gray-700(for='password') Password
           input#password.w-full.rounded-lg.border.border-gray-300.px-3.py-2.text-sm.text-gray-900.outline-none(type='password' name='password' required autocomplete='current-password' class='focus:border-blue-500 focus:ring-2 focus:ring-blue-200')
 
+        label.flex.items-start.gap-3.rounded-lg.border.border-gray-200.bg-gray-50.px-4.py-3
+          input#rememberMe.mt-1(type='checkbox' name='rememberMe' value='1' checked)
+          span
+            span.block.text-sm.font-medium.text-gray-900 Remember me for 7 days
+            span.block.text-xs.text-gray-500 Keeps you signed in on this device until you log out.
+
         button.inline-flex.w-full.items-center.justify-center.rounded-lg.bg-blue-600.px-6.py-3.font-semibold.text-white.transition(class='hover:bg-blue-700' type='submit') Sign In
+
+  script.
+    (function () {
+      var storageKey = 'adminLoginRemember';
+      var userIdInput = document.getElementById('userId');
+      var rememberMeInput = document.getElementById('rememberMe');
+      var status = new URLSearchParams(window.location.search).get('status') || '';
+      var lastLoginRaw = null;
+
+      try {
+        lastLoginRaw = localStorage.getItem(storageKey);
+      } catch (error) {
+        lastLoginRaw = null;
+      }
+
+      if (status === 'loggedout') {
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (error) {}
+        return;
+      }
+
+      if (!lastLoginRaw) {
+        return;
+      }
+
+      try {
+        var stored = JSON.parse(lastLoginRaw);
+        var lastLoginAt = Number(stored.lastLoginAt || 0);
+        var sevenDays = 1000 * 60 * 60 * 24 * 7;
+        var isFresh = lastLoginAt && (Date.now() - lastLoginAt) <= sevenDays;
+
+        if (!isFresh) {
+          localStorage.removeItem(storageKey);
+          return;
+        }
+
+        if (stored.userId && userIdInput && !userIdInput.value) {
+          userIdInput.value = stored.userId;
+        }
+
+        if (rememberMeInput) {
+          rememberMeInput.checked = stored.rememberMe !== false;
+        }
+      } catch (error) {
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (storageError) {}
+      }
+
+      var form = document.querySelector('form[action="/admin/login"]');
+      if (!form) {
+        return;
+      }
+
+      form.addEventListener('submit', function () {
+        try {
+          localStorage.setItem(storageKey, JSON.stringify({
+            userId: userIdInput ? userIdInput.value.trim() : '',
+            rememberMe: !!(rememberMeInput && rememberMeInput.checked),
+            lastLoginAt: Date.now(),
+          }));
+        } catch (error) {}
+      });
+    })();

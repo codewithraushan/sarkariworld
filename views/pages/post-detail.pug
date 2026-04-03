@@ -1,17 +1,50 @@
 extends ../layouts/main
 
 block content
-  section.max-w-4xl.mx-auto.px-4.py-12
-    .rounded-2xl.border.border-gray-200.bg-white.p-6.shadow-sm(class='md:p-8')
-      h1.text-3xl.font-bold.text-gray-900= post.title
-      p.mt-3.text-gray-600= post.description || 'Read full post details below.'
-      - const publishDate = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown'
-      - const authorName = post.author_name || 'Unknown'
-      - const viewCount = Number.isFinite(post.views) ? post.views : 0
-      - const viewLabel = viewCount === 1 ? 'view' : 'views'
-      p.mt-2.text-sm.text-gray-500 Published By #{authorName} on #{publishDate} | #{viewCount} #{viewLabel}
+  section.max-w-5xl.mx-auto.px-4.py-8(class='sm:px-6 sm:py-10 lg:px-8 lg:py-12')
+    - const publishDate = post.published_at ? new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Unknown'
+    - const authorName = post.author_name || 'Unknown'
+    - const viewCount = Number.isFinite(post.views) ? post.views : 0
+    - const viewLabel = viewCount === 1 ? 'view' : 'views'
 
-      .mt-4
-        a.inline-flex.items-center.justify-center.rounded-lg.bg-slate-700.px-4.py-2.font-semibold.text-white.transition(class='hover:bg-slate-800' href='/') Back to Home
+    .mb-6.rounded-3xl.border.border-slate-200.bg-gradient-to-br.from-white.to-slate-50.p-5.shadow-sm(class='sm:p-6 lg:p-8')
+      .flex.flex-col.gap-4
+        .flex.flex-wrap.items-center.justify-between.gap-3
+          if post.category
+            span.inline-flex.items-center.rounded-full.bg-blue-50.px-3.py-1.text-xs.font-semibold.uppercase.tracking-wider.text-blue-700= post.category
+          a.inline-flex.items-center.justify-center.rounded-lg.border.border-slate-200.bg-white.px-4.py-2.text-sm.font-semibold.text-slate-700.shadow-sm.transition(class='hover:border-slate-300 hover:bg-slate-50' href='/') Back to Home
 
-      .mt-8.preview-content !{content}
+        h1.text-3xl.font-extrabold.leading-tight.text-gray-900(class='sm:text-4xl lg:text-5xl')= post.title
+        p.max-w-3xl.text-base.leading-7.text-gray-600(class='sm:text-lg')= post.description || 'Read full post details below.'
+
+        .flex.flex-wrap.items-center.gap-2.text-sm.text-gray-500
+          span.inline-flex.items-center.rounded-full.bg-gray-100.px-3.py-1 Published by #{authorName}
+          span.inline-flex.items-center.rounded-full.bg-gray-100.px-3.py-1 Published on #{publishDate}
+          span.inline-flex.items-center.rounded-full.bg-blue-100.px-3.py-1.font-semibold.text-blue-700 #{viewCount} #{viewLabel}
+
+    .rounded-3xl.border.border-gray-200.bg-white.p-4.shadow-sm(class='sm:p-6 lg:p-8')
+      .post-article-body.mx-auto.max-w-none(class='lg:max-w-4xl [&_h1]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:leading-tight [&_h1]:text-slate-900 [&_h2]:mb-3 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:leading-tight [&_h2]:text-slate-900 [&_h3]:mb-2 [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:text-slate-900 [&_p]:my-4 [&_p]:text-base [&_p]:leading-7 [&_p]:text-slate-700 [&_a]:font-semibold [&_a]:text-blue-700 [&_a]:underline [&_a]:decoration-blue-500 [&_a]:underline-offset-4 [&_a:hover]:text-blue-800 [&_ul]:my-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6 [&_ol]:my-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_li]:text-slate-700 [&_blockquote]:my-6 [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:bg-blue-50 [&_blockquote]:px-4 [&_blockquote]:py-3 [&_blockquote]:text-slate-700 [&_pre]:my-6 [&_pre]:overflow-x-auto [&_pre]:rounded-xl [&_pre]:bg-slate-900 [&_pre]:p-4 [&_pre]:text-slate-100 [&_code]:rounded [&_code]:bg-slate-100 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-sm [&_code]:text-slate-800 [&_img]:my-6 [&_img]:h-auto [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:shadow-sm [&_iframe]:my-6 [&_iframe]:h-auto [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-2xl [&_iframe]:border-0 [&_table]:my-2 [&_table]:w-full [&_table]:border-collapse [&_table]:border [&_table]:border-slate-200 [&_th]:border [&_th]:border-slate-200 [&_th]:bg-slate-100 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-slate-800 [&_td]:border [&_td]:border-slate-200 [&_td]:px-3 [&_td]:py-2 [&_td]:align-top') !{content}
+
+  script.
+    (function () {
+      var container = document.querySelector('.post-article-body');
+      if (!container) {
+        return;
+      }
+
+      var tables = container.querySelectorAll('table');
+      tables.forEach(function (table) {
+        var parent = table.parentElement;
+        if (!parent || parent.classList.contains('post-table-wrap')) {
+          return;
+        }
+
+        var wrap = document.createElement('div');
+        wrap.className = 'post-table-wrap my-6 w-full overflow-x-auto rounded-xl border border-slate-200';
+        parent.insertBefore(wrap, table);
+        wrap.appendChild(table);
+
+        table.style.minWidth = '640px';
+        table.style.width = '100%';
+      });
+    })();

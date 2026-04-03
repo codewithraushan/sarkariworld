@@ -172,6 +172,7 @@ router.get("/login", function (req, res) {
 router.post("/login", async function (req, res) {
 	const userId = String(req.body?.userId || "").trim();
 	const password = String(req.body?.password || "");
+	const rememberMe = String(req.body?.rememberMe || "").trim() === "1";
 	const nextPath = String(req.body?.nextPath || "/admin").trim();
 	const safeNextPath = nextPath.startsWith("/admin") ? nextPath : "/admin";
 
@@ -228,6 +229,8 @@ router.post("/login", async function (req, res) {
 	req.session.adminUserId = userId;
 	req.session.adminId = String(admin._id || admin.id || "");
 	req.session.adminName = String(admin.name || userId);
+	req.session.cookie.maxAge = rememberMe ? 1000 * 60 * 60 * 24 * 7 : 1000 * 60 * 60 * 12;
+	req.session.rememberMe = rememberMe;
 
 	await writeActivityLog(req, {
 		level: "info",
@@ -255,7 +258,7 @@ router.post("/logout", function (req, res) {
 
 	req.session.destroy(() => {
 		res.clearCookie("admin.sid");
-		return res.redirect("/admin/login");
+		return res.redirect("/admin/login?status=loggedout");
 	});
 });
 
@@ -273,7 +276,7 @@ router.get("/logout", function (req, res) {
 
 	req.session.destroy(() => {
 		res.clearCookie("admin.sid");
-		return res.redirect("/admin/login");
+		return res.redirect("/admin/login?status=loggedout");
 	});
 });
 
